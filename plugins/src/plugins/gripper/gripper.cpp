@@ -159,7 +159,7 @@ void Gripper::close() {
     return;
   }
 
-  gazebo::physics::LinkPtr puckLink = getLinkEndingWith(grippedPuck,"cylinder");
+  gazebo::physics::LinkPtr puckLink = getLinkEndingWith(grippedPuck,"link");
   if (!puckLink){
     std::cerr << "Link 'cylinder' not found in workpiece model" << std::endl;
     return;
@@ -190,7 +190,7 @@ void Gripper::open() {
 void Gripper::setPuckPose(){
   if (!grippedPuck)
     return;
-  math::Pose gripperPose = model_->GetLink("carologistics-robotino-3::gripper::link")->GetWorldPose();
+  math::Pose gripperPose = model_->GetLink("allemaniacs-robotino-3::gripper::link")->GetWorldPose();
   math::Pose newPose = gripperPose;
 
   // printf("gripper pos: (%f,%f,%f)", newPose.pos.x, newPose.pos.y, newPose.rot.GetYaw());
@@ -203,7 +203,7 @@ void Gripper::setPuckPose(){
 physics::ModelPtr Gripper::getNearestPuck() {
 
   physics::ModelPtr nearest;
-  math::Pose gripperPose = model_->GetLink("carologistics-robotino-3::gripper::link")->GetWorldPose();
+  math::Pose gripperPose = model_->GetLink("allemaniacs-robotino-3::gripper::link")->GetWorldPose();
   double distance = DBL_MAX;
   unsigned int modelCount = model_->GetWorld()->GetModelCount();
   physics::ModelPtr tmp;

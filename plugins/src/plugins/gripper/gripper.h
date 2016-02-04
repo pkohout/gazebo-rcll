@@ -35,7 +35,7 @@
 #define TOPIC_SET_GRIPPER "~/RobotinoSim/SetGripper/"
 #define TOPIC_HOLDS_PUCK "~/RobotinoSim/GripperHasPuck/"
 #define TOPIC_JOINT "/GripperJoints/Holding"
-#define RADIUS_GRAB_AREA 0.05
+#define RADIUS_GRAB_AREA 0.30
 
 
 enum ActionOnUpdate{
