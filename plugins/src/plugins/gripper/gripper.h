@@ -31,6 +31,8 @@
 #include <boost/thread/mutex.hpp>
 #include <configurable/configurable.h>
 
+#include <random>
+
 
 //config values
 #define TOPIC_SET_GRIPPER config->get_string("plugins/gripper/topic-set-gripper").c_str()
@@ -42,6 +44,13 @@
 #define PROB_PUCK_FALLS config->get_float("plugins/gripper/prob-puck-falls")
 //probability of fail during pick up of the puck
 #define PROB_FAILING_PICK_UP config->get_float("plugins/gripper/prob-failing-pick-up")
+
+//the following parameters are only used when the floor clean plugin is off, so gripper itself needs to remove randomly fallen pucks
+#define FLOOR_CLEAN_OFF config->get_bool("plugins/floor-clean/floor-clean-off")
+#define FIELD_X_SIZE config->get_float("plugins/floor-clean/field-x-size")
+#define FIELD_Y_SIZE config->get_float("plugins/floor-clean/field-y-size")
+#define PUCK_HEIGHT config->get_float("plugins/mps/puck_height");
+#define PUCK_SIZE config->get_float("plugins/mps/puck_size");
 
 
 enum ActionOnUpdate{
@@ -123,5 +132,12 @@ namespace gazebo
     common::Time oldTime_ = 0;
     std::uniform_real_distribution<double> do_test_;
     std::mt19937 rnd_gen_;
+
+    //Position to put the wasted pucks
+    void setPuckPoseOffField(physics::ModelPtr puck);
+    double x_to_put_;
+    double y_to_put_;
+    double z_to_put_;
+    
   };
 }
