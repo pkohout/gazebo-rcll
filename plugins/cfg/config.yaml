@@ -72,19 +72,17 @@ plugins:
     topic_puck_command_result: "~/pucks/cmd/result"
     topic_joint: "/GripperJoints/Holding"
 
-    cap-station:
-      spawn_puck_time: 20
-      prob-shelf-broken: 0.0 #recommended: 0.05
-      prob-slide-input-broken: 0.0 #recommended: 0.05
-      prob-slide-output-broken: 0.0 #recommended: 0.05
-      rebreak-interval: 120.0 #after this interval new decision about broken state is made
+    cap-station/spawn_puck_time: 20
+    cap-station/prob-shelf-broken: 0.0 #recommended: 0.05
+    cap-station/prob-slide-input-broken: 0.0 #recommended: 0.05
+    cap-station/prob-slide-output-broken: 0.0 #recommended: 0.05
+    cap-station/rebreak-interval: 120.0 #after this interval new decision about broken state is made
 
-    ring-station:
-      topic_machine_add_base: "~/LLSFRbSim/MachineAddBase/"
-      max_num_bases: 3
-      prob-slide-input-broken: 0.0 #recommended: 0.05
-      prob-slide-output-broken: 0.0 #recommended: 0.05
-      prob-add-base-broken: 0.0 #recommended: 0.05
+    ring-station/topic_machine_add_base: "~/LLSFRbSim/MachineAddBase/"
+    ring-station/max_num_bases: 3
+    ring-station/prob-slide-input-broken: 0.0 #recommended: 0.05
+    ring-station/prob-slide-output-broken: 0.0 #recommended: 0.05
+    ring-station/prob-add-base-broken: 0.0 #recommended: 0.05
 
     storage-station:
       slots: [000,100,200,300,400,500]
@@ -95,9 +93,8 @@ plugins:
       slot400: ["BLACK","ORANGE","GRAY"]
       slot500: ["SILVER","BLUE","GRAY"]
 
-    base-station:
-      prob-slide-broken: 0.0 #recommended: 0.05
-      rebreak-interval: 120.0 #after this interval new decision about broken state is made
+    base-station/prob-slide-broken: 0.0 #recommended: 0.05
+    base-station/rebreak-interval: 120.0 #after this interval new decision about broken state is made
 
   puck:
     #The height of one ring
