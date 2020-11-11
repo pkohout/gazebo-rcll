@@ -15,11 +15,10 @@ OPCServer::OPCServer(const std::string &name, const std::string &type,
                      const std::string &ip, unsigned int port) {
   // First setup our server
   mps_name_ = name;
-  std::string endpoint = std::string("opc.tcp://") + ip + std::string(":") +
-                         std::to_string(port) + std::string("/");
-  printf("starting OPC Server");
+  std::string endpoint = std::string("opc.tcp://localhost:") + std::to_string(port);
+  printf("starting OPC Server: ");
   printf(endpoint.c_str());
-  logger_ = spdlog::stderr_color_mt("OPCserver" + name);
+  logger_ = spdlog::stderr_color_mt("OPCserver " + name);
   server_ = std::make_shared<OpcUa::UaServer>(logger_);
   server_->SetEndpoint(endpoint);
   server_->SetServerURI(("urn://" + name + ".opcserver").c_str());
@@ -71,7 +70,7 @@ void OPCServer::run_server() {
     n_status.AddVariable(4, "Ready", Variant(false));
 
     // populate IN node objects
-    n_p = n_basic.AddObject(4, "p");
+    n_p = n_in.AddObject(4, "p");
     n_p.AddVariable(4, "ActionId", Variant((uint16_t)0));
     n_p.AddVariable(4, "BarCode", Variant((uint32_t)0));
     n_p.AddVariable(4, "Error", Variant((uint8_t)0));
@@ -88,6 +87,7 @@ void OPCServer::run_server() {
     n_status.AddVariable(4, "Ready", Variant(false));
 
     server_started_ = true;
+  print(server_->GetObjectsNode(), "");
   }
 
   catch (const std::exception &exc) {
