@@ -23,7 +23,7 @@ include $(BASEDIR)/src/libs/mps_comm/freeopcua.mk
 LIBS_libmps_comm = stdc++ m pthread
 #LIBS_libmps_comm = stdc++ m llsfrbcore llsfrbconfig pthread
 
-OBJS_opcua = mps_server.o
+OBJS_opcua = mps_server.o opc_utils.o
 #OBJS_opcua = opcua/opc_utils.o opcua/machine.o opcua/base_station.o \
 						 opcua/cap_station.o opcua/delivery_station.o opcua/ring_station.o \
              opcua/storage_station.o
