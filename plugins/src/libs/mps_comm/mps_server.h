@@ -16,9 +16,23 @@
 #include <opc/ua/server/server.h>
 #include <opc/ua/subscription.h>
 
+#include "opc_utils.h"
 using namespace OpcUa;
 
 namespace mps_comm {
+
+class SubClient : public SubscriptionHandler {
+public:
+  SubClient(std::shared_ptr<spdlog::logger> logger_) : logger(logger_){};
+  void DataChange(uint32_t handle, const Node &node, const Variant &val,
+                  AttributeId attr) override {
+    OpcUtils::logNodeInfo(node, logger, true, 2);
+  }
+
+private:
+  std::shared_ptr<spdlog::logger> logger;
+};
+
 class OPCServer {
 
 public:
@@ -32,8 +46,11 @@ public:
 private:
   std::shared_ptr<spdlog::logger> logger_;
   std::shared_ptr<OpcUa::UaServer> server_;
+  std::shared_ptr<SubClient> subscription_client_;
+  std::shared_ptr<Subscription> subscription_;
 
   std::string mps_name_;
   bool server_started_ = 0;
 };
+
 } // namespace mps_comm
