@@ -119,19 +119,6 @@ void OPCServer::run_server() {
   }
 }
 
-void OPCServer::print(Node start_node, std::string level) {
-  for (Node node : start_node.GetChildren()) {
-    std::string print_s = level + " {}";
-    std::string i_s = level + "--";
-
-    logger_->info(print_s.c_str(), node);
-    logger_->info("Qualified name: {}", node.GetBrowseName());
-    logger_->info("ValueType: {}", node.GetValue().Type());
-    logger_->info("is Array: {}", node.GetValue().IsArray());
-    print(node, i_s);
-  }
-}
-
 // struct MPSDataNode {
 // idx: registered server namespace index in server
 //  MPSDataNode( Node parent, uint32_t idx ){
