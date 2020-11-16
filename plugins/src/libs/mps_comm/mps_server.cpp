@@ -13,7 +13,6 @@ using namespace mps_comm;
 
 OPCServer::OPCServer(const std::string &name, const std::string &type,
                      const std::string &ip, unsigned int port) {
-  // First setup our server
   mps_name_ = name;
   std::string endpoint =
       std::string("opc.tcp://localhost:") + std::to_string(port);
@@ -28,18 +27,13 @@ OPCServer::OPCServer(const std::string &name, const std::string &type,
 OPCServer::~OPCServer() {
   if (server_started_)
     server_->Stop();
-  // delete server_;
 }
 
 void OPCServer::run_server() {
   try {
     server_->Start();
     // then register our server namespace and get its index in server
-    // uint32_t idx =
     server_->RegisterNamespace("http://" + mps_name_);
-
-    subscription_client_ = std::make_shared<SubClient>(logger_);
-    subscription_ = server_->CreateSubscription(100, *subscription_client_);
 
     Node n_g = server_->GetObjectsNode()
                    .AddObject(2, "DeviceSet")
@@ -52,63 +46,15 @@ void OPCServer::run_server() {
     Node n_basic = n_g.AddObject(4, "Basic");
     Node n_in = n_g.AddObject(4, "In");
 
-    Node n_p;
-    Node n_data;
-    Node n_status;
+    std::shared_ptr<MpsDataNode> basic_data =
+        std::make_shared<MpsDataNode>(n_basic);
+    std::shared_ptr<MpsDataNode> in_data = std::make_shared<MpsDataNode>(n_in);
 
-    // populate BASIC node objects
-    n_p = n_basic.AddObject(4, "p");
-    subscription_->SubscribeDataChange(
-        n_p.AddVariable(4, "ActionId", Variant((uint16_t)0)));
-    subscription_->SubscribeDataChange(
-        n_p.AddVariable(4, "BarCode", Variant((uint32_t)0)));
-    subscription_->SubscribeDataChange(
-        n_p.AddVariable(4, "Error", Variant((uint8_t)0)));
-    subscription_->SubscribeDataChange(
-        n_p.AddVariable(4, "SlideCnt", Variant((uint16_t)0)));
-
-    n_data = n_p.AddObject(4, "Data");
-    subscription_->SubscribeDataChange(
-        n_data.AddVariable(4, "payload1", Variant((uint16_t)0)));
-    subscription_->SubscribeDataChange(
-        n_data.AddVariable(4, "payload2", Variant((uint16_t)0)));
-
-    n_status = n_p.AddObject(4, "Status");
-    subscription_->SubscribeDataChange(
-        n_status.AddVariable(4, "Busy", Variant(false)));
-    subscription_->SubscribeDataChange(
-        n_status.AddVariable(4, "Enable", Variant(false)));
-    subscription_->SubscribeDataChange(
-        n_status.AddVariable(4, "Error", Variant((uint8_t)0)));
-    subscription_->SubscribeDataChange(
-        n_status.AddVariable(4, "Ready", Variant(false)));
-
-    // populate IN node objects
-    n_p = n_in.AddObject(4, "p");
-    subscription_->SubscribeDataChange(
-        n_p.AddVariable(4, "ActionId", Variant((uint16_t)0)));
-    subscription_->SubscribeDataChange(
-        n_p.AddVariable(4, "BarCode", Variant((uint32_t)0)));
-    subscription_->SubscribeDataChange(
-        n_p.AddVariable(4, "Error", Variant((uint8_t)0)));
-    subscription_->SubscribeDataChange(
-        n_p.AddVariable(4, "SlideCnt", Variant((uint16_t)0)));
-
-    n_data = n_p.AddObject(4, "Data");
-    subscription_->SubscribeDataChange(
-        n_data.AddVariable(4, "payload1", Variant((uint16_t)0)));
-    subscription_->SubscribeDataChange(
-        n_data.AddVariable(4, "payload2", Variant((uint16_t)0)));
-
-    n_status = n_p.AddObject(4, "Status");
-    subscription_->SubscribeDataChange(
-        n_status.AddVariable(4, "Busy", Variant(false)));
-    subscription_->SubscribeDataChange(
-        n_status.AddVariable(4, "Enable", Variant(false)));
-    subscription_->SubscribeDataChange(
-        n_status.AddVariable(4, "Error", Variant((uint8_t)0)));
-    subscription_->SubscribeDataChange(
-        n_status.AddVariable(4, "Ready", Variant(false)));
+    basic_commands_handler_ =
+        std::make_shared<CommandHandler>(server_, logger_);
+    basic_commands_handler_->register_handler(basic_data);
+    in_commands_handler_ = std::make_shared<CommandHandler>(server_, logger_);
+    in_commands_handler_->register_handler(basic_data);
 
     server_started_ = true;
 
@@ -118,24 +64,3 @@ void OPCServer::run_server() {
     std::cout << "Starting Server Failed: " << exc.what() << std::endl;
   }
 }
-
-// struct MPSDataNode {
-// idx: registered server namespace index in server
-//  MPSDataNode( Node parent, uint32_t idx ){
-//    NodeId n_G("4:p",idx);
-//    QualifiedName qn_G("4:p", idx);
-
-//  }
-//}
-
-// void subscribe()
-//{
-
-//   SubClient clt1;
-//  std::shared_ptr<Subscription> sub1 = server.CreateSubscription(100, clt1);
-//  sub1->SubscribeDataChange(Ac1);
-
-//  SubClient clt2;
-//  std::shared_ptr<Subscription> sub2 = server.CreateSubscription(100, clt2);
-//  sub2->SubscribeDataChange(Ac2);
-//}
