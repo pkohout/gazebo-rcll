@@ -80,9 +80,9 @@ public:
     // Data Object Node
     Node n_data = parent.AddObject(namespaceIdx, "Data");
     reg_nodes_[DATA_PAYLOAD1] =
-        n_data.AddVariable(namespaceIdx, "payload1", Variant((uint16_t)0));
+        n_data.AddVariable(namespaceIdx, "Payload1", Variant((uint16_t)0));
     reg_nodes_[DATA_PAYLOAD2] =
-        n_data.AddVariable(namespaceIdx, "payload2", Variant((uint16_t)0));
+        n_data.AddVariable(namespaceIdx, "Payload2", Variant((uint16_t)0));
     // Status Object Vars
     Node n_status = parent.AddObject(namespaceIdx, "Status");
     reg_nodes_[STATUS_BUSY] =

@@ -57,7 +57,7 @@ void OPCServer::run_server() {
     std::shared_ptr<MpsData> basic_data =
         std::make_shared<MpsData>(server_, logger_, basic_path);
     basic_commands_handler_ = std::make_shared<CommandHandler>(basic_data);
-    basic_commands_handler_->handle_commands(basic_data->CommandRegisters);
+    basic_commands_handler_->handle_instructions(basic_data->CommandRegisters);
 
     std::vector<std::string> in_path = {
         "Objects",     "2:DeviceSet",   "4:CPX-E-CEC-C1-PN",
@@ -66,10 +66,18 @@ void OPCServer::run_server() {
     std::shared_ptr<MpsData> in_data =
         std::make_shared<MpsData>(server_, logger_, in_path);
     in_commands_handler_ = std::make_shared<CommandHandler>(in_data);
-    in_commands_handler_->handle_commands(in_data->CommandRegisters);
+    in_commands_handler_->handle_instructions(in_data->CommandRegisters);
 
+    Instruction c = {{"ActionId", "0"},
+                     {"Enable", "false"},
+                     {"Payload1", "0"},
+                     {"Payload2", "0"}};
+
+    in_commands_handler_->register_instruction_callback(
+        c, [](std::string error) {
+          std::cout << "In node HeartBeat" << std::endl;
+        });
     server_started_ = true;
-
   }
 
   catch (const std::exception &exc) {

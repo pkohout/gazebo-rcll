@@ -32,6 +32,8 @@ using namespace OpcUa;
 
 namespace mps_comm {
 
+typedef std::map<std::string, std::string> Instruction;
+
 class CommandHandler : public SubscriptionHandler {
 public:
   CommandHandler(std::shared_ptr<MpsData> mps_data)
@@ -40,35 +42,54 @@ public:
 
   ~CommandHandler(){};
 
-  void handle_commands(std::vector<MpsData::Registers> command_registers) {
-    command_registers_ = command_registers;
+  void
+  handle_instructions(std::vector<MpsData::Registers> instruction_registers) {
+    instruction_registers_ = instruction_registers;
     subscription_ = server_->CreateSubscription(100, *this);
-    for (auto &i : command_registers) {
+    for (auto &i : instruction_registers) {
       OpcUa::Node node = mps_data_->get_node(i);
-      command_node_names_.push_back(node.GetBrowseName().Name);
+      instruction_nodes_name_.push_back(node.GetBrowseName().Name);
       subscription_->SubscribeDataChange(node);
     }
+  }
+
+  void
+  register_instruction_callback(Instruction instruction,
+                                std::function<void(std::string)> callback) {
+    callbacks_[instruction] = callback;
   }
 
   void DataChange(uint32_t handle, const Node &node, const Variant &val,
                   AttributeId attr) override {
 
-    if (node.GetBrowseName().Name == command_node_names_.front())
-      if (!mps_command_.empty())
-        dispatch_command();
+    if (node.GetBrowseName().Name == instruction_nodes_name_.front())
+      if (!mps_instruction_.empty())
+        dispatch_instruction();
 
-    mps_command_[node.GetBrowseName().Name] = node.GetValue().ToString();
+    mps_instruction_[node.GetBrowseName().Name] = node.GetValue().ToString();
 
-    if (node.GetBrowseName().Name == command_node_names_.back())
-      dispatch_command();
+    if (node.GetBrowseName().Name == instruction_nodes_name_.back())
+      dispatch_instruction();
   }
 
-  void dispatch_command() {
-    for (auto &i : mps_command_)
+  void dispatch_instruction() {
+    for (auto &i : mps_instruction_)
       std::cout << i.first << " : " << i.second << std::endl;
 
-    std::cout << "======================" << std::endl;
-    mps_command_.clear();
+    for (auto &i : callbacks_) {
+      bool call = true;
+      for (auto &registered_instruction : i.first)
+        if (mps_instruction_[registered_instruction.first] !=
+            registered_instruction.second) {
+          call = false;
+          continue;
+        }
+      if (call)
+        i.second("Error");
+    }
+    mps_instruction_.clear();
+
+    std::cout << "--------------------------------" << std::endl;
   }
 
 private:
@@ -80,14 +101,19 @@ private:
   std::shared_ptr<Subscription> subscription_;
 
   // Registers which constitutes an MPS Command
-  std::vector<MpsData::Registers> command_registers_;
-  std::vector<std::string> command_node_names_;
-  std::map<std::string, std::string> mps_command_;
+  std::vector<MpsData::Registers> instruction_registers_;
+  std::vector<std::string> instruction_nodes_name_;
 
+  Instruction mps_instruction_;
+  std::map<Instruction, std::function<void(std::string)>> callbacks_;
   // std::tuple<unsigned short, unsigned short, unsigned short, int, unsigned
   // char,
   //            unsigned char>
   //     instruction_;
 };
+
+// struct MPSIntruction{
+//    std::vector<MpsData::Regitsters> instruction_registers_;
+//}
 
 } // end namespace mps_comm
