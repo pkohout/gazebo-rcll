@@ -35,26 +35,23 @@ void OPCServer::run_server() {
     // then register our server namespace and get its index in server
     server_->RegisterNamespace("http://" + mps_name_);
 
-    Node n_g = server_->GetObjectsNode()
-                   .AddObject(2, "DeviceSet")
-                   .AddObject(4, "CPX-E-CEC-C1-PN")
-                   .AddObject(4, "Resources")
-                   .AddObject(4, "Application")
-                   .AddObject(3, "GlobalVars")
-                   .AddObject(4, "G");
+    std::vector<std::string> basic_path = {
+        "Objects",     "2:DeviceSet",   "4:CPX-E-CEC-C1-PN",
+        "4:Resources", "4:Application", "3:GlobalVars",
+        "4:G",         "4:Basic"};
+    std::shared_ptr<MpsData> basic_data =
+        std::make_shared<MpsData>(server_, logger_, basic_path);
+    basic_commands_handler_ = std::make_shared<CommandHandler>(basic_data);
+    basic_commands_handler_->handle_commands(basic_data->CommandRegisters);
 
-    Node n_basic = n_g.AddObject(4, "Basic");
-    Node n_in = n_g.AddObject(4, "In");
-
-    std::shared_ptr<MpsDataNode> basic_data =
-        std::make_shared<MpsDataNode>(n_basic);
-    std::shared_ptr<MpsDataNode> in_data = std::make_shared<MpsDataNode>(n_in);
-
-    basic_commands_handler_ =
-        std::make_shared<CommandHandler>(server_, logger_);
-    basic_commands_handler_->register_handler(basic_data);
-    in_commands_handler_ = std::make_shared<CommandHandler>(server_, logger_);
-    in_commands_handler_->register_handler(basic_data);
+    std::vector<std::string> in_path = {
+        "Objects",     "2:DeviceSet",   "4:CPX-E-CEC-C1-PN",
+        "4:Resources", "4:Application", "3:GlobalVars",
+        "4:G",         "4:In"};
+    std::shared_ptr<MpsData> in_data =
+        std::make_shared<MpsData>(server_, logger_, in_path);
+    in_commands_handler_ = std::make_shared<CommandHandler>(in_data);
+    in_commands_handler_->handle_commands(in_data->CommandRegisters);
 
     server_started_ = true;
 
