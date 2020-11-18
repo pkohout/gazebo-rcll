@@ -47,9 +47,8 @@ class MpsData {
   };
 
 public:
-  MpsData(std::shared_ptr<OpcUa::UaServer> OPCServer,
-          std::shared_ptr<spdlog::logger> logger, std::vector<std::string> path)
-      : server_(OPCServer), logger_(logger), base_path_(path) {
+  MpsData(const OpcUa::UaServer *OPCServer, std::vector<std::string> path)
+      : base_path_(path) {
 
     // Get parent Object Node descibed by the base path
     Node parent = OPCServer->GetRootNode();
@@ -64,7 +63,7 @@ public:
         namespaceIdx = qname.NamespaceIndex;
         NodeId nodeid = NumericNodeId(0, namespaceIdx);
         parent = parent.AddObject(nodeid, qname);
-        OpcUtils::logNodeInfo(parent, logger_, true, 2);
+        // OpcUtils::logNodeInfo(parent, logger_, true, 2);
       }
     }
 
@@ -103,8 +102,6 @@ public:
       ACTION_ID, DATA_PAYLOAD1, DATA_PAYLOAD2, STATUS_ENABLE, ERROR};
 
 private:
-  std::shared_ptr<OpcUa::UaServer> server_;
-  std::shared_ptr<spdlog::logger> logger_;
   std::vector<std::string> base_path_;
 
   std::map<Registers, OpcUa::Node> reg_nodes_;

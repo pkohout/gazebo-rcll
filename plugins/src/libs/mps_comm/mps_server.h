@@ -33,12 +33,12 @@
 
 #include "mps_command.h"
 #include "mps_data.h"
+#include "mps_io_mapping.h"
 #include "opc_utils.h"
-
 using namespace OpcUa;
 
 namespace mps_comm {
-class OPCServer {
+class OPCServer : public OpcUa::UaServer {
 
 public:
   OPCServer(const std::string &name, const std::string &type,
@@ -46,11 +46,16 @@ public:
   ~OPCServer();
 
   void run_server();
-  void populate_nodes();
+
+  void handle_instruction(Instruction instruction,
+                          std::function<void(std::string)> callback);
+
+  void set_barcode(uint16_t workpiece_id);
+  void set_status_busy();
 
 private:
-  std::shared_ptr<spdlog::logger> logger_;
-  std::shared_ptr<OpcUa::UaServer> server_;
+  std::shared_ptr<MpsData> basic_data_;
+  std::shared_ptr<MpsData> in_data_;
 
   std::shared_ptr<mps_comm::CommandHandler> basic_commands_handler_;
   std::shared_ptr<mps_comm::CommandHandler> in_commands_handler_;

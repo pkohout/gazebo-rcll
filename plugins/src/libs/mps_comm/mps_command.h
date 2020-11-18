@@ -36,9 +36,9 @@ typedef std::map<std::string, std::string> Instruction;
 
 class CommandHandler : public SubscriptionHandler {
 public:
-  CommandHandler(std::shared_ptr<MpsData> mps_data)
-      : mps_data_(mps_data), server_(mps_data->server_),
-        logger_(mps_data->logger_){};
+  CommandHandler(OpcUa::UaServer *server, std::shared_ptr<MpsData> mps_data,
+                 std::shared_ptr<spdlog::logger> logger)
+      : server_(server), mps_data_(mps_data), logger_(logger){};
 
   ~CommandHandler(){};
 
@@ -93,8 +93,8 @@ public:
   }
 
 private:
+  OpcUa::UaServer *server_;
   std::shared_ptr<MpsData> mps_data_;
-  std::shared_ptr<OpcUa::UaServer> server_;
   std::shared_ptr<spdlog::logger> logger_;
 
 private:
