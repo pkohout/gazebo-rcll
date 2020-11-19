@@ -73,16 +73,15 @@ void MpsOpcUaLoader::Load(physics::WorldPtr _world, sdf::ElementPtr sdf) {
                 config->get_string((cfg_prefix + "host").c_str());
             unsigned int port = config->get_uint((cfg_prefix + "port").c_str());
 
-            std::string endpoint = std::string("opc.tcp://") + mpsip +
-                                   std::string(":") + std::to_string(port) +
-                                   std::string("/");
-
             printf(
                 ("Opc Server starting for machine " + mps_name + "\n").c_str());
-            printf(("Opc Sercver endpoint " + endpoint + "\n").c_str());
-            mps_server_[mps_name] = std::make_shared<mps_comm::OPCServer>(
-                mps_name, mpstype, mpsip, port);
-            mps_server_[mps_name]->run_server();
+            std::shared_ptr<mps_comm::OPCServer> server =
+                std::make_shared<mps_comm::OPCServer>(mps_name, mpstype, mpsip,
+                                                      port);
+            server->run_server();
+
+            machines_[mps_name] = std::make_shared<Machine>(mps_name, server);
+
             printf(
                 ("Opc Server started for machine " + mps_name + "\n").c_str());
           }

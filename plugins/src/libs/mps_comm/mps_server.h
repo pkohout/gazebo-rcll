@@ -18,7 +18,6 @@
  *  Read the full text in the LICENSE.GPL file in the doc directory.
  */
 
-
 #include <algorithm>
 #include <iostream>
 #include <time.h>
@@ -48,7 +47,7 @@ public:
   void run_server();
 
   void handle_instruction(Instruction instruction,
-                          std::function<void(std::string)> callback);
+                          std::function<void(Instruction)> callback);
 
   void set_barcode(uint16_t workpiece_id);
   void set_status_busy();

@@ -63,15 +63,6 @@ void OPCServer::run_server() {
         std::make_shared<CommandHandler>(this, in_data_, Logger);
     in_commands_handler_->handle_instructions(in_data_->CommandRegisters);
 
-    Instruction c = {{"ActionId", "0"},
-                     {"Enable", "false"},
-                     {"Payload1", "0"},
-                     {"Payload2", "0"}};
-
-    in_commands_handler_->register_instruction_callback(
-        c, [](std::string error) {
-          std::cout << "In node HeartBeat" << std::endl;
-        });
     server_started_ = true;
   } catch (const std::exception &exc) {
     std::cout << "Starting Server Failed: " << exc.what() << std::endl;
@@ -79,7 +70,7 @@ void OPCServer::run_server() {
 }
 
 void OPCServer::handle_instruction(Instruction i,
-                                   std::function<void(std::string)> callback) {
+                                   std::function<void(Instruction)> callback) {
   // Commands with out a station code are handeled by basic nodes
   if (std::stoi(i["ActionId"]) < Station::STATION_BASE)
     basic_commands_handler_->register_instruction_callback(i, callback);

@@ -23,7 +23,7 @@ GAZEBO_LIBDIR = $(LIBDIR)/gazebo
 LIBDIRS_BASE += $(GAZEBO_LIBDIR)
 
 LIBS_gazebo_libmps_opcua = config configurable core mps_comm
-OBJS_gazebo_libmps_opcua = mps_opcua.o
+OBJS_gazebo_libmps_opcua = mps_opcua.o machine.o
 
 OBJS_all    = $(OBJS_gazebo_libmps_opcua )
 

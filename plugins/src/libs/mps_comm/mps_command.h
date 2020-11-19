@@ -55,7 +55,7 @@ public:
 
   void
   register_instruction_callback(Instruction instruction,
-                                std::function<void(std::string)> callback) {
+                                std::function<void(Instruction)> callback) {
     callbacks_[instruction] = callback;
   }
 
@@ -85,7 +85,7 @@ public:
           continue;
         }
       if (call)
-        i.second("Error");
+        i.second(mps_instruction_);
     }
     mps_instruction_.clear();
 
@@ -105,7 +105,7 @@ private:
   std::vector<std::string> instruction_nodes_name_;
 
   Instruction mps_instruction_;
-  std::map<Instruction, std::function<void(std::string)>> callbacks_;
+  std::map<Instruction, std::function<void(Instruction)>> callbacks_;
   // std::tuple<unsigned short, unsigned short, unsigned short, int, unsigned
   // char,
   //            unsigned char>

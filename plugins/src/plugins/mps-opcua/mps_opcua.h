@@ -30,7 +30,7 @@
 #include <configurable/configurable.h>
 #include <core/exception.h>
 #include <map>
-#include <mps_comm/mps_server.h>
+#include "machine.h"
 
 namespace gazebo {
 
@@ -49,7 +49,7 @@ public:
 private:
   /// Pointer to the gazbeo world
   physics::WorldPtr world_;
-  std::map<std::string, std::shared_ptr<mps_comm::OPCServer>> mps_server_;
+  std::map<std::string, std::shared_ptr<Machine>> machines_;
 };
 
 } // namespace gazebo
