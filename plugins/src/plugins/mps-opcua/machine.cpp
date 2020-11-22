@@ -21,13 +21,11 @@
 // Abstract base class for the stations
 
 #include "machine.h"
-#include <functional>
-#include <string>
-#include <vector>
-
-#include <boost/bind.hpp>
+#include <gazsim_msgs/OpcInstruction.pb.h>
 
 using namespace gazebo;
+using namespace gazsim_msgs;
+using namespace std::placeholders;
 using namespace mps_comm;
 
 void something(int i, int r) {}
@@ -65,54 +63,43 @@ void Machine::register_instructions() {
 
   // Move Conveyor Commands
   c = {{"ActionId", std::to_string(machine_type_ + COMMAND_MOVE_CONVEYOR)}};
-  auto f =
-      std::bind(&Machine::publish_move_conveyor, this, std::placeholders::_1);
+  auto f = std::bind(&Machine::publish_move_conveyor, this, _1);
   server_->handle_instruction(c, f);
-
-  c = {{"ActionId", std::to_string(LIGHT_COLOR_RED)}};
-  server_->handle_instruction(
-      c, std::bind(&Machine::publish_set_light, this, std::placeholders::_1));
 
   // SetLight Commands
   c = {{"ActionId", std::to_string(LIGHT_COLOR_RESET)}};
-  server_->handle_instruction(
-      c, std::bind(&Machine::publish_set_light, this, std::placeholders::_1));
+  server_->handle_instruction(c,
+                              std::bind(&Machine::publish_set_light, this, _1));
   c = {{"ActionId", std::to_string(LIGHT_COLOR_RED)}};
-  server_->handle_instruction(
-      c, std::bind(&Machine::publish_set_light, this, std::placeholders::_1));
+  server_->handle_instruction(c,
+                              std::bind(&Machine::publish_set_light, this, _1));
   c = {{"ActionId", std::to_string(LIGHT_COLOR_YELLOW)}};
-  server_->handle_instruction(
-      c, std::bind(&Machine::publish_set_light, this, std::placeholders::_1));
+  server_->handle_instruction(c,
+                              std::bind(&Machine::publish_set_light, this, _1));
   c = {{"ActionId", std::to_string(LIGHT_COLOR_GREEN)}};
-  server_->handle_instruction(
-      c, std::bind(&Machine::publish_set_light, this, std::placeholders::_1));
+  server_->handle_instruction(c,
+                              std::bind(&Machine::publish_set_light, this, _1));
 
   // Reset Command
   c = {{"ActionId", std::to_string(machine_type_ | COMMAND_RESET)}};
-  server_->handle_instruction(
-      c, std::bind(&Machine::publish_reset, this, std::placeholders::_1));
-  void publish_operation_get_base(mps_comm::Instruction instruction);
-  void publish_operation_retrieve_cap(mps_comm::Instruction instruction);
-  void publish_operation_mount_cap(mps_comm::Instruction instruction);
-  void publish_operation_mount_ring(mps_comm::Instruction instruction);
-  void publish_operation_deliver(mps_comm::Instruction instruction);
+  server_->handle_instruction(c, std::bind(&Machine::publish_reset, this, _1));
 
   // Machine Operations
-  c = {{"ActionId", std::to_string( machine_type_ + OPERATION_GET_BASE}};
-  server_->handle_instruction(c, std::bind(&Machine::publish_operation_base,
-                                           this, std::placeholders::_1));
+  c = {{"ActionId", std::to_string(machine_type_ + OPERATION_GET_BASE)}};
+  server_->handle_instruction(
+      c, std::bind(&Machine::publish_operation_base, this, _1));
 
- c = {{"ActionId", std::to_string( machine_type_ + OPERATION_CAP_ACTION}};
- server_->handle_instruction(c, std::bind(&Machine::publish_operation_cap, this,
-                                          std::placeholders::_1));
+  c = {{"ActionId", std::to_string(machine_type_ + OPERATION_CAP_ACTION)}};
+  server_->handle_instruction(
+      c, std::bind(&Machine::publish_operation_cap, this, _1));
 
-  c = {{"ActionId", std::to_string( machine_type_ + OPERATION_MOUNT_RING}};
-  server_->handle_instruction(c, std::bind(&Machine::publish_operation_ring,
-                                           this, std::placeholders::_1));
+  c = {{"ActionId", std::to_string(machine_type_ + OPERATION_MOUNT_RING)}};
+  server_->handle_instruction(
+      c, std::bind(&Machine::publish_operation_ring, this, _1));
 
-  c = {{"ActionId", std::to_string( machine_type_ | OPERATION_DELIVER}};
-  server_->handle_instruction(c, std::bind(&Machine::publish_operation_deliver,
-                                           this, std::placeholders::_1));
+  c = {{"ActionId", std::to_string(machine_type_ | OPERATION_DELIVER)}};
+  server_->handle_instruction(
+      c, std::bind(&Machine::publish_operation_deliver, this, _1));
 };
 
 void Machine::publish_move_conveyor(Instruction instruction) {
@@ -136,27 +123,29 @@ void Machine::publish_set_light(Instruction instruction) {
             << "SetLight " << l_color << " " << l_state << std::endl;
 }
 
-void publish_operation_base(mps_comm::Instruction instruction) {
+void Machine::publish_operation_base(mps_comm::Instruction instruction) {
   BaseColor cl = static_cast<BaseColor>(std::stoi(instruction["Payload1"]));
   std::cout << "[" << machine_name_ << "] : "
             << "Recived Get Base " << cl << std::endl;
 }
-void publish_operation_cap(mps_comm::Instruction instruction) {
+
+void Machine::publish_operation_cap(mps_comm::Instruction instruction) {
   Operation p1 = static_cast<Operation>(std::stoi(instruction["Payload1"]));
   std::cout << "[" << machine_name_ << "] : "
             << "Recived Cap Action " << p1 << std::endl;
 }
-void publish_operation_ring(mps_comm::Instruction instruction) {
+
+void Machine::publish_operation_ring(mps_comm::Instruction instruction) {
   unsigned int feeder =
       static_cast<unsigned int>(std::stoi(instruction["Payload1"]));
   std::cout << "[" << machine_name_ << "] : "
-            << "Recived Mount Ring (feeder: " << feeder ")" << std::endl;
+            << "Recived Mount Ring (feeder: " << feeder << ")" << std::endl;
 }
 
-void publish_operation_deliver(mps_comm::Instruction instruction) {
+void Machine::publish_operation_deliver(mps_comm::Instruction instruction) {
   int slot = static_cast<unsigned int>(std::stoi(instruction["Payload1"]));
   std::cout << "[" << machine_name_ << "] : "
-            << "Recived Deliver (slot: " << slot ")" << std::endl;
+            << "Recived Deliver (slot: " << slot << ")" << std::endl;
 }
 
 void Machine::on_status_busy(bool busy) {}

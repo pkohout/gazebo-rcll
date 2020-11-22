@@ -21,11 +21,11 @@
 // Abstract base class for the stations
 #pragma once
 
-#include <mps_comm/mps_io_mapping.h>
-#include <mps_comm/mps_server.h>
-
+#include <functional>
 #include <string>
 #include <vector>
+
+#include <mps_comm/mps_server.h>
 
 namespace gazebo {
 
@@ -52,13 +52,12 @@ protected:
   // Set & reset the light of specified color to specified state
   // color: 1 - 3, state 0 - 2
   void publish_set_light(mps_comm::Instruction instruction);
-  void publish_operation_get_base(mps_comm::Instruction instruction);
-  void publish_operation_retrieve_cap(mps_comm::Instruction instruction);
-  void publish_operation_mount_cap(mps_comm::Instruction instruction);
-  void publish_operation_mount_ring(mps_comm::Instruction instruction);
+  void publish_operation_base(mps_comm::Instruction instruction);
+  void publish_operation_cap(mps_comm::Instruction instruction);
+  void publish_operation_ring(mps_comm::Instruction instruction);
   void publish_operation_deliver(mps_comm::Instruction instruction);
 
-  mps_comm::Station machine_type_;
+  gazsim_msgs::Station machine_type_;
   std::string machine_name_;
   // OpcUa Server pointer
   std::shared_ptr<mps_comm::OPCServer> server_;
