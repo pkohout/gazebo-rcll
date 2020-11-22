@@ -21,7 +21,6 @@
 #include <algorithm>
 #include <iostream>
 #include <time.h>
-
 #include <chrono>
 #include <thread>
 
@@ -30,10 +29,12 @@
 #include <opc/ua/server/server.h>
 #include <opc/ua/subscription.h>
 
+#include <gazsim_msgs/OpcInstruction.pb.h>
+
 #include "mps_command.h"
 #include "mps_data.h"
-#include "mps_io_mapping.h"
 #include "opc_utils.h"
+
 using namespace OpcUa;
 
 namespace mps_comm {

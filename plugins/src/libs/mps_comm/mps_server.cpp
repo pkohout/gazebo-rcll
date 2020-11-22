@@ -20,8 +20,10 @@
 
 #include "mps_server.h"
 
+
 using namespace OpcUa;
 using namespace mps_comm;
+using namespace gazsim_msgs;
 
 OPCServer::OPCServer(const std::string &name, const std::string &type,
                      const std::string &ip, unsigned int port)
@@ -72,7 +74,7 @@ void OPCServer::run_server() {
 void OPCServer::handle_instruction(Instruction i,
                                    std::function<void(Instruction)> callback) {
   // Commands with out a station code are handeled by basic nodes
-  if (std::stoi(i["ActionId"]) < Station::STATION_BASE)
+  if (std::stoi(i["ActionId"]) < Station_MIN)
     basic_commands_handler_->register_instruction_callback(i, callback);
   else
     in_commands_handler_->register_instruction_callback(i, callback);
