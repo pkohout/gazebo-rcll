@@ -25,42 +25,58 @@
 #include <string>
 #include <vector>
 
+#include <gazebo/transport/transport.hh>
+#include <utils/misc/gazebo_api_wrappers.h>
+
 #include <mps_comm/mps_server.h>
 
 namespace gazebo {
 
-enum ConveyorDirection { FORWARD = 1, BACKWARD = 2 };
-enum MPSSensor { INPUT = 1, MIDDLE = 2, OUTPUT = 3 };
-
 class Machine {
 
 public:
-  Machine(std::string machine_name,
-          std::shared_ptr<mps_comm::OPCServer> server);
+  Machine(std::string machine_name, std::shared_ptr<mps_comm::OPCServer> server,
+          transport::NodePtr transport_node);
 
   ~Machine();
 
   void register_instructions();
+
+public:
   void on_status_busy(bool busy);
   void on_status_ready(bool ready);
   void on_barcode(uint16_t barcode);
 
-protected:
-  void publish_move_conveyor(mps_comm::Instruction instruction);
+private:
+  void publish_instruction_heartbeat(mps_comm::Instruction instruction);
+  void publish_instruction_move_conveyor(mps_comm::Instruction instruction);
   // Reset: send the reset command (which is different for each machine type)
-  void publish_reset(mps_comm::Instruction instruction);
+  void publish_instruction_reset(mps_comm::Instruction instruction);
   // Set & reset the light of specified color to specified state
   // color: 1 - 3, state 0 - 2
-  void publish_set_light(mps_comm::Instruction instruction);
-  void publish_operation_base(mps_comm::Instruction instruction);
-  void publish_operation_cap(mps_comm::Instruction instruction);
-  void publish_operation_ring(mps_comm::Instruction instruction);
-  void publish_operation_deliver(mps_comm::Instruction instruction);
+  void publish_instruction_set_light(mps_comm::Instruction instruction);
+  void publish_instruction_base_operation(mps_comm::Instruction instruction);
+  void publish_instruction_cap_operation(mps_comm::Instruction instruction);
+  void publish_instruction_ring_operation(mps_comm::Instruction instruction);
+  void publish_instruction_deliver_operation(mps_comm::Instruction instruction);
 
+private:
   gazsim_msgs::Station machine_type_;
   std::string machine_name_;
   // OpcUa Server pointer
   std::shared_ptr<mps_comm::OPCServer> server_;
+
+private:
+  // Node for communication
+  transport::NodePtr transport_node_;
+  transport::PublisherPtr publisher_heartbeat_;
+  transport::PublisherPtr publisher_reset_;
+  transport::PublisherPtr publisher_move_conveyor_;
+  transport::PublisherPtr publisher_set_light_;
+  transport::PublisherPtr publisher_base_operation_;
+  transport::PublisherPtr publisher_cap_operation_;
+  transport::PublisherPtr publisher_ring_operation_;
+  transport::PublisherPtr publisher_deliver_operation_;
 };
 
 } // namespace gazebo

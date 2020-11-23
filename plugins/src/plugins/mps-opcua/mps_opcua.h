@@ -26,11 +26,12 @@
 #include <gazebo/common/common.hh>
 #include <gazebo/gazebo.hh>
 #include <gazebo/physics/physics.hh>
+#include <gazebo/transport/transport.hh>
 
+#include "machine.h"
 #include <configurable/configurable.h>
 #include <core/exception.h>
 #include <map>
-#include "machine.h"
 
 namespace gazebo {
 
@@ -49,6 +50,7 @@ public:
 private:
   /// Pointer to the gazbeo world
   physics::WorldPtr world_;
+  transport::NodePtr transport_node_;
   std::map<std::string, std::shared_ptr<Machine>> machines_;
 };
 

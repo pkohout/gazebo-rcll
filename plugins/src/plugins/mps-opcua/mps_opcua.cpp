@@ -42,6 +42,11 @@ MpsOpcUaLoader::~MpsOpcUaLoader() { printf("Destructing MpsOpcUa Plugin!\n"); }
 
 void MpsOpcUaLoader::Load(physics::WorldPtr _world, sdf::ElementPtr sdf) {
 
+  // Create the communication Node for communication with fawkes
+  transport_node_ = transport::NodePtr(new transport::Node());
+  // the namespace is set to the world name!
+  transport_node_->Init(_world->GZWRAP_NAME());
+
   try {
     if (config->get_bool("plugins/mps-opcua/enable")) {
 
@@ -80,7 +85,8 @@ void MpsOpcUaLoader::Load(physics::WorldPtr _world, sdf::ElementPtr sdf) {
                                                       port);
             server->run_server();
 
-            machines_[mps_name] = std::make_shared<Machine>(mps_name, server);
+            machines_[mps_name] =
+                std::make_shared<Machine>(mps_name, server, transport_node_);
 
             printf(
                 ("Opc Server started for machine " + mps_name + "\n").c_str());
