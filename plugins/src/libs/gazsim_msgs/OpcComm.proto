@@ -124,51 +124,53 @@ enum MPSSensor {
 // Time stamp and duration structure.
 // Can be used for absolute times or
 // durations alike.
-message OpcInstructionMoveConveyor {
-  required string mps = 1;
-  required Station station = 2;
+
+message OpcInstHeartbeat {
+ optional string hearbeat =1; 
+}
+
+message OpcInstReset {
+}
+
+message OpcInstMoveConveyor {
   required ConveyorDirection direction = 3;
   required MPSSensor sensor = 4;
 
 }
 
-message OpcInstructionSetLight {
-  required string mps = 1;
-  required Station station = 2 ;
+message OpcInstSetLight {
   required LightColor color = 3;
   required LightState state = 4;
 }
 
-message OpcInstructionHeartbeat {
-  required string mps = 1;
-  required Station station = 2 ;
-}
 
-message OpcInstructionReset {
-  required string mps = 1;
-  required Station station = 2 ;
-}
-
-message OpcInstructionBaseOperation {
-  required string mps = 1;
-  required Station station = 2 ;
+message OpcInstBaseOperation {
   required BaseColor color = 3;
 }
 
-message OpcInstructionCapOperation {
-  required string mps = 1;
-  required Station station = 2 ;
+message OpcInstCapOperation {
   required Operation operation  = 3 ;
 }
 
-message OpcInstructionRingOperation {
-  required string mps = 1;
-  required Station station = 2 ;
+message OpcInstRingOperation {
   required int32 feeder = 3 ;
 }
 
-message OpcInstructionDeliverOperation {
+message OpcInstDeliverOperation {
+  required int32 slot = 3;
+}
+
+
+message OpcInstruction{
   required string mps = 1;
   required Station station = 2 ;
-  required int32 slot = 3;
+
+  optional OpcInstHeartbeat heartbeat = 3;
+  optional OpcInstReset reset = 4;
+  optional OpcInstMoveConveyor move_conveyor = 5;
+  optional OpcInstSetLight  set_light= 6; 
+  optional OpcInstBaseOperation base_operation = 7; 
+  optional OpcInstCapOperation cap_operation = 8;
+  optional OpcInstRingOperation ring_operation = 9;
+  optional OpcInstDeliverOperation deliver_operation  = 10;
 }

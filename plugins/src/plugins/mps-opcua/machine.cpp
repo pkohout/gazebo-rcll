@@ -21,7 +21,7 @@
 // Abstract base class for the stations
 
 #include "machine.h"
-#include <gazsim_msgs/OpcInstruction.pb.h>
+#include <gazsim_msgs/OpcComm.pb.h>
 
 using namespace gazebo;
 using namespace gazsim_msgs;
@@ -112,48 +112,32 @@ void Machine::register_instructions() {
                    std::placeholders::_1));
 
   // Publishers for Opc Instructions as gaszim_msgs
-  publisher_heartbeat_ =
-      transport_node_->Advertise<gazsim_msgs::OpcInstructionHeartbeat>(
-          "~/opcua/instruction/heartbeat");
-  publisher_reset_ =
-      transport_node_->Advertise<gazsim_msgs::OpcInstructionReset>(
-          "~/opcua/instruction/reset");
-  publisher_move_conveyor_ =
-      transport_node_->Advertise<gazsim_msgs::OpcInstructionMoveConveyor>(
-          "~/opcua/instruction/move_conveyor");
-  publisher_set_light_ =
-      transport_node_->Advertise<gazsim_msgs::OpcInstructionSetLight>(
-          "~/opcua/instruction/set_light");
-  publisher_base_operation_ =
-      transport_node_->Advertise<gazsim_msgs::OpcInstructionBaseOperation>(
-          "~/opcua/instruction/base_operation");
-  publisher_cap_operation_ =
-      transport_node_->Advertise<gazsim_msgs::OpcInstructionCapOperation>(
-          "~/opcua/instruction/cap_operation");
-  publisher_ring_operation_ =
-      transport_node_->Advertise<gazsim_msgs::OpcInstructionRingOperation>(
-          "~/opcua/instruction/ring_operation");
-  publisher_deliver_operation_ =
-      transport_node_->Advertise<gazsim_msgs::OpcInstructionDeliverOperation>(
-          "~/opcua/instruction/deliver_operation");
+  publisher_ = transport_node_->Advertise<gazsim_msgs::OpcInstruction>(
+      "~/opcua/instructions");
 };
 
 void Machine::publish_instruction_heartbeat(Instruction instruction) {
   std::cout << "[" << machine_name_ << "] :"
             << "HeartBeat " << std::endl;
-  OpcInstructionHeartbeat msg;
+  OpcInstHeartbeat *inst_msg = new OpcInstHeartbeat();
+
+  OpcInstruction msg;
   msg.set_mps(machine_name_);
   msg.set_station(machine_type_);
-  publisher_heartbeat_->Publish(msg);
+  msg.set_allocated_heartbeat(inst_msg);
+  publisher_->Publish(msg);
 }
 
 void Machine::publish_instruction_reset(Instruction instruction) {
   std::cout << "[" << machine_name_ << "] :"
             << " Reset Received " << std::endl;
-  OpcInstructionReset msg;
+  OpcInstReset *inst_msg = new OpcInstReset();
+
+  OpcInstruction msg;
   msg.set_mps(machine_name_);
   msg.set_station(machine_type_);
-  publisher_reset_->Publish(msg);
+  msg.set_allocated_reset(inst_msg);
+  publisher_->Publish(msg);
 }
 
 void Machine::publish_instruction_move_conveyor(Instruction instruction) {
@@ -162,12 +146,15 @@ void Machine::publish_instruction_move_conveyor(Instruction instruction) {
       static_cast<ConveyorDirection>(std::stoi(instruction["Payload2"]));
   std::cout << "[" << machine_name_ << "] : "
             << " Move Conveyor " << sensor << " " << direction << std::endl;
-  OpcInstructionMoveConveyor msg;
+  OpcInstMoveConveyor *inst_msg = new OpcInstMoveConveyor();
+  inst_msg->set_sensor(sensor);
+  inst_msg->set_direction(direction);
+
+  OpcInstruction msg;
   msg.set_mps(machine_name_);
   msg.set_station(machine_type_);
-  msg.set_sensor(sensor);
-  msg.set_direction(direction);
-  publisher_move_conveyor_->Publish(msg);
+  msg.set_allocated_move_conveyor(inst_msg);
+  publisher_->Publish(msg);
 }
 
 void Machine::publish_instruction_set_light(Instruction instruction) {
@@ -177,12 +164,15 @@ void Machine::publish_instruction_set_light(Instruction instruction) {
       static_cast<LightState>(std::stoi(instruction["Payload1"]));
   std::cout << "[" << machine_name_ << "]"
             << "SetLight " << l_color << " " << l_state << std::endl;
-  OpcInstructionSetLight msg;
+  OpcInstSetLight *inst_msg = new OpcInstSetLight();
+  inst_msg->set_color(l_color);
+  inst_msg->set_state(l_state);
+
+  OpcInstruction msg;
   msg.set_mps(machine_name_);
   msg.set_station(machine_type_);
-  msg.set_color(l_color);
-  msg.set_state(l_state);
-  publisher_set_light_->Publish(msg);
+  msg.set_allocated_set_light(inst_msg);
+  publisher_->Publish(msg);
 }
 
 void Machine::publish_instruction_base_operation(
@@ -191,11 +181,14 @@ void Machine::publish_instruction_base_operation(
   std::cout << "[" << machine_name_ << "] : "
             << "Recived Get Base " << cl << std::endl;
 
-  OpcInstructionBaseOperation msg;
+  OpcInstBaseOperation *inst_msg = new OpcInstBaseOperation();
+  inst_msg->set_color(cl);
+
+  OpcInstruction msg;
   msg.set_mps(machine_name_);
   msg.set_station(machine_type_);
-  msg.set_color(cl);
-  publisher_base_operation_->Publish(msg);
+  msg.set_allocated_base_operation(inst_msg);
+  publisher_->Publish(msg);
 }
 
 void Machine::publish_instruction_cap_operation(
@@ -204,11 +197,14 @@ void Machine::publish_instruction_cap_operation(
   std::cout << "[" << machine_name_ << "] : "
             << "Recived Cap Action " << p1 << std::endl;
 
-  OpcInstructionCapOperation msg;
+  OpcInstCapOperation *inst_msg = new OpcInstCapOperation();
+  inst_msg->set_operation(p1);
+
+  OpcInstruction msg;
   msg.set_mps(machine_name_);
   msg.set_station(machine_type_);
-  msg.set_operation(p1);
-  publisher_cap_operation_->Publish(msg);
+  msg.set_allocated_cap_operation(inst_msg);
+  publisher_->Publish(msg);
 }
 
 void Machine::publish_instruction_ring_operation(
@@ -218,11 +214,14 @@ void Machine::publish_instruction_ring_operation(
   std::cout << "[" << machine_name_ << "] : "
             << "Recived Mount Ring (feeder: " << feeder << ")" << std::endl;
 
-  OpcInstructionRingOperation msg;
+  OpcInstRingOperation *inst_msg = new OpcInstRingOperation();
+  inst_msg->set_feeder(feeder);
+
+  OpcInstruction msg;
   msg.set_mps(machine_name_);
   msg.set_station(machine_type_);
-  msg.set_feeder(feeder);
-  publisher_ring_operation_->Publish(msg);
+  msg.set_allocated_ring_operation(inst_msg);
+  publisher_->Publish(msg);
 }
 
 void Machine::publish_instruction_deliver_operation(
@@ -231,11 +230,14 @@ void Machine::publish_instruction_deliver_operation(
   std::cout << "[" << machine_name_ << "] : "
             << "Recived Deliver (slot: " << slot << ")" << std::endl;
 
-  OpcInstructionDeliverOperation msg;
+  OpcInstDeliverOperation *inst_msg = new OpcInstDeliverOperation();
+  inst_msg->set_slot(slot);
+
+  OpcInstruction msg;
   msg.set_mps(machine_name_);
   msg.set_station(machine_type_);
-  msg.set_slot(slot);
-  publisher_deliver_operation_->Publish(msg);
+  msg.set_allocated_deliver_operation(inst_msg);
+  publisher_->Publish(msg);
 }
 
 void Machine::on_status_busy(bool busy) {}

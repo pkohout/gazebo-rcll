@@ -69,14 +69,7 @@ private:
 private:
   // Node for communication
   transport::NodePtr transport_node_;
-  transport::PublisherPtr publisher_heartbeat_;
-  transport::PublisherPtr publisher_reset_;
-  transport::PublisherPtr publisher_move_conveyor_;
-  transport::PublisherPtr publisher_set_light_;
-  transport::PublisherPtr publisher_base_operation_;
-  transport::PublisherPtr publisher_cap_operation_;
-  transport::PublisherPtr publisher_ring_operation_;
-  transport::PublisherPtr publisher_deliver_operation_;
+  transport::PublisherPtr publisher_;
 };
 
 } // namespace gazebo
