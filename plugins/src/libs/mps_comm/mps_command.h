@@ -63,16 +63,21 @@ public:
                   AttributeId attr) override {
 
     if (node.GetBrowseName().Name == instruction_nodes_name_.front())
-      if (!mps_instruction_.empty())
-        dispatch_instruction();
+      //  if (!mps_instruction_.empty())
+      dispatch_instruction();
 
     mps_instruction_[node.GetBrowseName().Name] = node.GetValue().ToString();
 
-    if (node.GetBrowseName().Name == instruction_nodes_name_.back())
-      dispatch_instruction();
+    std::cout << "...Recived :  " << node.GetBrowseName().Name << ":"
+              << node.GetValue().ToString() << std::endl;
+
+    //  if (node.GetBrowseName().Name == instruction_nodes_name_.back())
+    //  dispatch_instruction();
   }
 
   void dispatch_instruction() {
+
+    std::cout << "---------------Dispatched---------------" << std::endl;
     for (auto &i : mps_instruction_)
       std::cout << i.first << " : " << i.second << std::endl;
 
@@ -88,6 +93,10 @@ public:
         i.second(mps_instruction_);
     }
     mps_instruction_.clear();
+    mps_instruction_ = {{"ActionId", "0"},
+                        {"Enable", "false"},
+                        {"Payload1", "0"},
+                        {"Payload2", "0"}};
 
     std::cout << "--------------------------------" << std::endl;
   }
