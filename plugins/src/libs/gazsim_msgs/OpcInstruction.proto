@@ -92,17 +92,11 @@ enum MPSCommand {
 enum Operation {
   option allow_alias = true;
   OPERATION_GET_BASE = 1;
-  OPERATION_WAIT_FOR_BASES = 1;
   OPERATION_MOUNT_RING = 3;
   OPERATION_CAP_ACTION = 1;
   OPERATION_CAP_RETRIEVE = 1;
   OPERATION_CAP_MOUNT = 2;
   OPERATION_DELIVER = 1;
-  OPERATION_GET_F_PRODUCT = 1;
-  OPERATION_BAND_ON_UNTIL = 2;
-  OPERATION_BAND_IN = 1;
-  OPERATION_BAND_MID = 2;
-  OPERATION_BAND_OUT = 3;
 }
 
 // The status flags.
@@ -130,7 +124,7 @@ enum MPSSensor {
 // Time stamp and duration structure.
 // Can be used for absolute times or
 // durations alike.
-message OpcMoveConveyor {
+message OpcInstructionMoveConveyor {
   required string mps = 1;
   required Station station = 2;
   required ConveyorDirection direction = 3;
@@ -138,11 +132,43 @@ message OpcMoveConveyor {
 
 }
 
-message OpcSetLight {
+message OpcInstructionSetLight {
   required string mps = 1;
   required Station station = 2 ;
   required LightColor color = 3;
   required LightState state = 4;
 }
 
+message OpcInstructionHeartbeat {
+  required string mps = 1;
+  required Station station = 2 ;
+}
 
+message OpcInstructionReset {
+  required string mps = 1;
+  required Station station = 2 ;
+}
+
+message OpcInstructionBaseOperation {
+  required string mps = 1;
+  required Station station = 2 ;
+  required BaseColor color = 3;
+}
+
+message OpcInstructionCapOperation {
+  required string mps = 1;
+  required Station station = 2 ;
+  required Operation operation  = 3 ;
+}
+
+message OpcInstructionRingOperation {
+  required string mps = 1;
+  required Station station = 2 ;
+  required int32 feeder = 3 ;
+}
+
+message OpcInstructionDeliverOperation {
+  required string mps = 1;
+  required Station station = 2 ;
+  required int32 slot = 3;
+}
