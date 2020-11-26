@@ -38,6 +38,25 @@ syntax = "proto2";
 package gazsim_msgs;
 
 
+
+  // Registers existing in the MPS, to which it is possible to subscribe to
+  enum Register {
+    ACTION_ID = 10;
+    BARCODE = 9;
+    DATA_PAYLOAD1 = 8;
+    DATA_PAYLOAD2 = 7;
+    ERROR = 6;
+    SLIDECOUNT = 5;
+    STATUS_ENABLED = 4;
+    STATUS_ERR = 3;
+    STATUS_READY = 2;
+    STATUS_BUSY = 1;
+    LAST = 0; // must be the last in the list
+  };
+
+
+
+
 // Base commands for mps_comm communication:
 // Each machine type has a base prefix.
 // The sub commands are added to these base prefixes.
@@ -101,12 +120,13 @@ enum Operation {
 
 // The status flags.
 // To be combined with bitwise | and read with bitwise &
-enum Status {
-  STATUS_ENABLED = 4;
-  STATUS_ERR = 3;
-  STATUS_READY = 2;
-  STATUS_BUSY = 1;
-}
+//enum Status {
+//  STATUS_ENABLED = 4;
+//  STATUS_ERR = 3;
+//  STATUS_READY = 2;
+//  STATUS_BUSY = 1;
+//}
+// (they are part of Register enum)
 
 
 enum ConveyorDirection {

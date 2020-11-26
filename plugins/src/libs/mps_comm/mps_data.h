@@ -21,30 +21,17 @@
 #pragma once
 #include "opc_utils.h"
 #include <exception>
+#include <gazsim_msgs/OpcComm.pb.h>
 #include <opc/ua/node.h>
 #include <opc/ua/protocol/variant.h>
 
 using namespace OpcUa;
+using namespace gazsim_msgs;
 
 namespace mps_comm {
 
 class MpsData {
   friend class CommandHandler;
-
-  // Registers existing in the MPS, to which it is possible to subscribe to
-  enum Registers {
-    ACTION_ID = 0,
-    BARCODE,
-    DATA_PAYLOAD1,
-    DATA_PAYLOAD2,
-    ERROR,
-    SLIDECOUNT,
-    STATUS_BUSY,
-    STATUS_ENABLE,
-    STATUS_ERROR,
-    STATUS_READY,
-    LAST, // must be the last in the list
-  };
 
 public:
   MpsData(const OpcUa::UaServer *OPCServer, std::vector<std::string> path)
@@ -86,9 +73,9 @@ public:
     Node n_status = parent.AddObject(namespaceIdx, "Status");
     reg_nodes_[STATUS_BUSY] =
         n_status.AddVariable(namespaceIdx, "Busy", Variant(false));
-    reg_nodes_[STATUS_ENABLE] =
+    reg_nodes_[STATUS_ENABLED] =
         n_status.AddVariable(namespaceIdx, "Enable", Variant(false));
-    reg_nodes_[STATUS_ERROR] =
+    reg_nodes_[STATUS_ERR] =
         n_status.AddVariable(namespaceIdx, "Error", Variant((uint8_t)0));
     reg_nodes_[STATUS_READY] =
         n_status.AddVariable(namespaceIdx, "Ready", Variant(false));
@@ -96,15 +83,18 @@ public:
 
   ~MpsData(){};
 
-  OpcUa::Node get_node(Registers reg) { return reg_nodes_[reg]; }
+  std::string type() { return base_path_.back(); }
+  OpcUa::Node get_node(Register reg) { return reg_nodes_[reg]; }
+  std::string get_value_str(Register reg) {
+    return reg_nodes_[reg].GetValue().ToString();
+  }
 
   std::vector<Registers> CommandRegisters = {
       ACTION_ID, DATA_PAYLOAD1, DATA_PAYLOAD2, STATUS_ENABLE, ERROR};
 
 private:
   std::vector<std::string> base_path_;
-
-  std::map<Registers, OpcUa::Node> reg_nodes_;
+  std::map<Register, OpcUa::Node> reg_nodes_;
 };
 
 } // namespace mps_comm

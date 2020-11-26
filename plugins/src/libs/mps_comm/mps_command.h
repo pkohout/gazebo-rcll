@@ -21,6 +21,7 @@
 #pragma once
 
 #include <exception>
+#include <gazsim_msgs/OpcComm.pb.h>
 #include <opc/ua/node.h>
 #include <opc/ua/protocol/variant.h>
 #include <opc/ua/subscription.h>
@@ -42,8 +43,7 @@ public:
 
   ~CommandHandler(){};
 
-  void
-  handle_instructions(std::vector<MpsData::Registers> instruction_registers) {
+  void handle_instructions(std::vector<Register> instruction_registers) {
     instruction_registers_ = instruction_registers;
     subscription_ = server_->CreateSubscription(100, *this);
     for (auto &i : instruction_registers) {
