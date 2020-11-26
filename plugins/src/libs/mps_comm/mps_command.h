@@ -49,6 +49,7 @@ public:
     for (auto &i : instruction_registers) {
       OpcUa::Node node = mps_data_->get_node(i);
       instruction_nodes_name_.push_back(node.GetBrowseName().Name);
+      instruction_set_flags_[node.GetBrowseName().Name] = false;
       subscription_->SubscribeDataChange(node);
     }
   }
@@ -59,27 +60,47 @@ public:
     callbacks_[instruction] = callback;
   }
 
+
+
+/* There is no guarantees on the order by which the node values (making up
+  an instruction) are received. This is a cheep solution to keep flags for
+  each register and drop information which arrives on set flag. Dispatch
+  when all flags are set.
+  TODO: implement a proper instruction queue
+*/
   void DataChange(uint32_t handle, const Node &node, const Variant &val,
                   AttributeId attr) override {
 
-    if (node.GetBrowseName().Name == instruction_nodes_name_.front())
-      //  if (!mps_instruction_.empty())
-      dispatch_instruction();
+    if (mps_data_->type().find("In") != std::string::npos)
+      std::cout << "...Recived :  " << node.GetBrowseName().Name << ":"
+                << node.GetValue().ToString() << std::endl;
 
-    mps_instruction_[node.GetBrowseName().Name] = node.GetValue().ToString();
+    if (!instruction_set_flags_[node.GetBrowseName().Name]) {
+      mps_instruction_[node.GetBrowseName().Name] = node.GetValue().ToString();
+      instruction_set_flags_[node.GetBrowseName().Name] = true;
+    } else
+      std::cout
+          << "...OPC Recived : new instruction wants to used register ["
+          << node.GetBrowseName().Name << ":" << node.GetValue().ToString()
+          << "] while old instruction still not dispatched...dropping value!"
+          << std::endl;
 
-    std::cout << "...Recived :  " << node.GetBrowseName().Name << ":"
-              << node.GetValue().ToString() << std::endl;
-
-    //  if (node.GetBrowseName().Name == instruction_nodes_name_.back())
-    //  dispatch_instruction();
+    dispatch_instruction();
   }
 
   void dispatch_instruction() {
 
-    std::cout << "---------------Dispatched---------------" << std::endl;
-    for (auto &i : mps_instruction_)
-      std::cout << i.first << " : " << i.second << std::endl;
+    for (auto &set_flags : instruction_set_flags_)
+      if (!set_flags.second)
+        return;
+
+    if (mps_data_->type().find("In") != std::string::npos) {
+      std::cout << "---------------Dispatched---------------" << std::endl;
+      for (auto &i : mps_instruction_)
+        std::cout << i.first << " : " << i.second << std::endl;
+
+      std::cout << "--------------------------------" << std::endl;
+    }
 
     for (auto &i : callbacks_) {
       bool call = true;
@@ -92,13 +113,16 @@ public:
       if (call)
         i.second(mps_instruction_);
     }
-    mps_instruction_.clear();
-    mps_instruction_ = {{"ActionId", "0"},
-                        {"Enable", "false"},
-                        {"Payload1", "0"},
-                        {"Payload2", "0"}};
+    //  mps_instruction_.clear();
+    //  mps_instruction_ = {{"ActionId", "0"},
+    //                      {"Enable", "false"},
+    //                      {"Payload1", "0"},
+    //                      {"Payload2", "0"},
+    //                      {"Error", ""}
+    //                      };
 
-    std::cout << "--------------------------------" << std::endl;
+    for (auto &set_flags : instruction_set_flags_)
+      set_flags.second = false;
   }
 
 private:
@@ -110,19 +134,15 @@ private:
   std::shared_ptr<Subscription> subscription_;
 
   // Registers which constitutes an MPS Command
-  std::vector<MpsData::Registers> instruction_registers_;
+  // Desciption of an instruction registers
+  std::vector<Register> instruction_registers_;
+  //Desciption of instruction node_names
   std::vector<std::string> instruction_nodes_name_;
-
+  //Flags to track a single values beloning to the same instruction
+  std::map<std::string, bool> instruction_set_flags_;
+  //The instructions
   Instruction mps_instruction_;
+
   std::map<Instruction, std::function<void(Instruction)>> callbacks_;
-  // std::tuple<unsigned short, unsigned short, unsigned short, int, unsigned
-  // char,
-  //            unsigned char>
-  //     instruction_;
 };
-
-// struct MPSIntruction{
-//    std::vector<MpsData::Regitsters> instruction_registers_;
-//}
-
 } // end namespace mps_comm
