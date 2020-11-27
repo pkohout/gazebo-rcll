@@ -145,6 +145,16 @@ enum MPSSensor {
 // Can be used for absolute times or
 // durations alike.
 
+//Messages to set Opc registers
+message OpcSetRegister{
+  required string mps = 1;
+  required Register reg = 2;
+  required string value = 3;
+}
+
+
+
+//Message to broadcast OPC instructions
 message OpcInstHeartbeat {
  optional string hearbeat =1; 
 }
@@ -194,3 +204,5 @@ message OpcInstruction{
   optional OpcInstRingOperation ring_operation = 9;
   optional OpcInstDeliverOperation deliver_operation  = 10;
 }
+
+

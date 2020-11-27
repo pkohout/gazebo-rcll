@@ -20,7 +20,6 @@
 
 #include "mps_server.h"
 
-
 using namespace OpcUa;
 using namespace mps_comm;
 using namespace gazsim_msgs;
@@ -78,4 +77,8 @@ void OPCServer::handle_instruction(Instruction i,
     basic_commands_handler_->register_instruction_callback(i, callback);
   else
     in_commands_handler_->register_instruction_callback(i, callback);
+}
+
+bool OPCServer::set_register_value(Register reg, std::string value) {
+  return in_data_->set_value(reg, value);
 }

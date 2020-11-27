@@ -19,17 +19,17 @@
  */
 
 #include <algorithm>
-#include <iostream>
-#include <time.h>
 #include <chrono>
+#include <iostream>
 #include <thread>
+#include <time.h>
 
 #include <opc/ua/node.h>
 #include <opc/ua/protocol/variant.h>
 #include <opc/ua/server/server.h>
 #include <opc/ua/subscription.h>
 
-#include <gazsim_msgs/OpcInstruction.pb.h>
+#include <gazsim_msgs/OpcComm.pb.h>
 
 #include "mps_command.h"
 #include "mps_data.h"
@@ -50,8 +50,7 @@ public:
   void handle_instruction(Instruction instruction,
                           std::function<void(Instruction)> callback);
 
-  void set_barcode(uint16_t workpiece_id);
-  void set_status_busy();
+  bool set_register_value(Register reg, std::string value);
 
 private:
   std::shared_ptr<MpsData> basic_data_;
