@@ -13,7 +13,7 @@
 #
 #*****************************************************************************
 
-include $(BASEDIR)/src/libs/mps_comm/spdlog.mk
+include $(BUILDSYSDIR)/spdlog.mk
 
 FREEOPCUA_COMPONENTS=libopcuacore libopcuaclient libopcuaprotocol libopcuaserver
 ifneq ($(PKGCONFIG),)

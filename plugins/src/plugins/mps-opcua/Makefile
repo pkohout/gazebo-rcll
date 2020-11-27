@@ -18,6 +18,7 @@ BASEDIR = ../../..
 include $(BASEDIR)/etc/buildsys/config.mk
 include $(BUILDSYSDIR)/gazebo.mk
 include $(BUILDSYSDIR)/protobuf.mk
+include $(BUILDSYSDIR)/freeopcua.mk
 
 GAZEBO_LIBDIR = $(LIBDIR)/gazebo
 LIBDIRS_BASE += $(GAZEBO_LIBDIR)
@@ -44,6 +45,14 @@ else
   endif
 endif
 
+ifeq ($(HAVE_FREEOPCUA),1)
+  OBJS_libmps_comm += $(OBJS_opcua)
+  CFLAGS  += $(CFLAGS_FREEOPCUA) -DHAVE_FREEOPCUA
+  LDFLAGS += $(LDFLAGS_FREEOPCUA)
+else
+  WARN_TARGETS += warning_freeopcua
+endif
+
 ifeq ($(OBJSSUBMAKE),1)
 all: $(WARN_TARGETS)
 .PHONY: warning_gazebo warning_protobuf
@@ -55,6 +64,8 @@ warning_protobuf:
 		"(protobuf[-devel] not installed)"
 warning_cpp11:
 	$(SILENT)echo -e "$(INDENT_PRINT)--> $(TRED)Omitting image viewing support$(TNORMAL) (C++11 not supported)"
+warning_freeopcua:
+	$(SILENT)echo -e "$(INDENT_PRINT)--> $(TRED)No OPC-UA support$(TNORMAL) ($(WARNING_FREEOPCUA))"
 endif
 
 include $(BUILDSYSDIR)/base.mk
