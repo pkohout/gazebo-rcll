@@ -28,6 +28,7 @@
 #include "mps.h"
 
 using namespace gazebo;
+using namespace gazsim_msgs;
 
 // Register this plugin to make it available in the simulator
 //GZ_REGISTER_MODEL_PLUGIN(Mps)
@@ -115,6 +116,13 @@ Mps::Mps(physics::ModelPtr _parent, sdf::ElementPtr)
   tag_joint_output = model_->GetWorld()->GZWRAP_PHYSICS()->CreateJoint( "revolute", model_);
   tag_joint_output->SetName("tag_joint_output");
   tag_joint_output->SetModel( model_);
+
+  // opc communication
+  sub_opc_msgs_ =
+      node_->Subscribe("~/opcua/instructions", &Mps::opc_on_instructions, this);
+  pub_opc_msgs_ =
+      node_->Advertise<gazsim_msgs::OpcSetRegister>("~/opcua/set_register");
+  puck_on_mps_ = "";
 }
 ///Destructor
 Mps::~Mps()
@@ -154,10 +162,30 @@ void Mps::Reset()
 
 /** Functions for recieving puck locations Messages
  * @param msg message
- */ 
-void Mps::on_puck_msg(ConstPosePtr &msg)
-{
+ */
+void Mps::on_puck_msg(ConstPosePtr &msg) {
+  if (msg->name() == puck_on_mps_ &&
+      (puck_in_input(msg) || puck_in_output(msg))) {
+    OpcSetRegister opc_msg;
+    opc_msg.set_mps(name_);
+    opc_msg.set_reg(STATUS_READY);
+    opc_msg.set_value("true");
+    pub_opc_msgs_->Publish(opc_msg);
+  }
 
+  if (msg->name() == puck_on_mps_ && !puck_in_input(msg) &&
+      !puck_in_output(msg)) {
+    puck_on_mps_ = "";
+    OpcSetRegister opc_msg;
+    opc_msg.set_mps(name_);
+    opc_msg.set_reg(STATUS_READY);
+    opc_msg.set_value("false");
+    pub_opc_msgs_->Publish(opc_msg);
+  }
+
+  if (puck_on_mps_ == "" && puck_in_input(msg) && !is_puck_hold(msg->name())) {
+    puck_on_mps_ = msg->name();
+  }
 }
 
 void Mps::on_machine_msg(ConstMachineInfoPtr &msg)
@@ -471,4 +499,60 @@ gazebo::physics::JointPtr Mps::getJointEndingWith(physics::ModelPtr model, std::
       return joints[i];
   }
   return gazebo::physics::JointPtr();
+}
+
+void Mps::opc_process_operation(ConstOpcInstructionPtr &msg) {
+  printf(" %s Called OPC process operation of the base class  \n",
+         name_.c_str());
+}
+
+void Mps::opc_set_register(gazsim_msgs::Register reg, std::string value) {
+  OpcSetRegister msg;
+  msg.set_mps(name_);
+  msg.set_reg(STATUS_BUSY);
+  msg.set_value(value);
+  pub_opc_msgs_->Publish(msg);
+}
+
+void Mps::opc_on_instructions(ConstOpcInstructionPtr &msg) {
+
+  if (msg->mps() != name_)
+    return;
+
+  if (msg->has_heartbeat())
+    return;
+
+  if (msg->has_set_light())
+    return;
+
+  if (msg->has_reset()) {
+    printf(" %s OPC Instruction received RESET  \n", name_.c_str());
+    return;
+  }
+
+  opc_set_register(STATUS_BUSY, "true");
+  if (msg->has_move_conveyor()) {
+    printf(" %s OPC MoveConveyor Instruction received \n", name_.c_str());
+    MPSSensor sensor = msg->move_conveyor().sensor();
+    // ConveyorDirection direction = msg->move_conveyor()->direction();
+    if (puck_on_mps_ == "")
+      return;
+
+    if (sensor == OUTPUT)
+      world_->GZWRAP_MODEL_BY_NAME(puck_on_mps_)->SetWorldPose(output());
+
+    if (sensor == INPUT)
+      world_->GZWRAP_MODEL_BY_NAME(puck_on_mps_)->SetWorldPose(input());
+  }
+
+  if ((msg->has_base_operation() && (name_.find("BS") != std::string::npos)) ||
+      (msg->has_cap_operation() && (name_.find("CS") != std::string::npos)) ||
+      (msg->has_ring_operation() && (name_.find("RS") != std::string::npos)) ||
+      (msg->has_deliver_operation() &&
+       (name_.find("DS") != std::string::npos))) {
+    printf(" %s OPC Operation Instruction received \n", name_.c_str());
+    opc_process_operation(msg);
+  }
+
+  opc_set_register(STATUS_BUSY, "false");
 }
