@@ -222,14 +222,13 @@ void Mps::refbox_reply(ConstInstructMachinePtr &msg){
          machine_reply_pub_->Publish(reply);
 }
 
-
-void Mps::set_state(State state)
-{
-  printf("Setting state for machine %s to %s \n", name_.c_str(), llsf_msgs::MachineState_Name(state).c_str());
-  llsf_msgs::SetMachineState set_state;
-  set_state.set_machine_name(name_);
-  set_state.set_state(state);
-  set_machne_state_pub_->Publish(set_state);
+void Mps::set_state(State state) {
+  printf("Setting state for machine %s to %s \n", name_.c_str(),
+         llsf_msgs::MachineState_Name(state).c_str());
+  //  llsf_msgs::SetMachineState set_state;
+  //  set_state.set_machine_name(name_);
+  //  set_state.set_state(state);
+  //  set_machne_state_pub_->Publish(set_state);
 }
 
 /**
