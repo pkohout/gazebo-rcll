@@ -34,20 +34,18 @@ namespace gazebo {
 
 class Machine {
 
+  typedef const boost::shared_ptr<gazsim_msgs::OpcSetRegister const>
+      ConstOpcSetRegisterPtr;
+
 public:
   Machine(std::string machine_name, std::shared_ptr<mps_comm::OPCServer> server,
           transport::NodePtr transport_node);
 
   ~Machine();
 
-  void register_instructions();
-
-public:
-  void on_status_busy(bool busy);
-  void on_status_ready(bool ready);
-  void on_barcode(uint16_t barcode);
-
 private:
+  void on_set_register(ConstOpcSetRegisterPtr &msg);
+  void register_instructions();
   void publish_instruction_heartbeat(mps_comm::Instruction instruction);
   void publish_instruction_move_conveyor(mps_comm::Instruction instruction);
   // Reset: send the reset command (which is different for each machine type)
@@ -70,6 +68,7 @@ private:
   // Node for communication
   transport::NodePtr transport_node_;
   transport::PublisherPtr publisher_;
+  transport::SubscriberPtr subscriber_;
 };
 
 } // namespace gazebo

@@ -46,6 +46,12 @@ Machine::Machine(std::string mps_name, std::shared_ptr<OPCServer> server,
   if (mps_name.find("SS") != std::string::npos)
     machine_type_ = STATION_STORAGE;
 
+  std::cout << "station:" << machine_type_ << std::endl;
+  // Publishers for Opc Instructions as gaszim_msgs
+  publisher_ =
+      transport_node_->Advertise<OpcInstruction>("~/opcua/instructions");
+  subscriber_ = transport_node_->Subscribe("~/opcua/set_register",
+                                           &Machine::on_set_register, this);
   register_instructions();
 }
 
@@ -91,30 +97,47 @@ void Machine::register_instructions() {
   server_->handle_instruction(c, std::bind(&Machine::publish_instruction_reset,
                                            this, std::placeholders::_1));
   // Instruction Base Operations
-  c = {{"ActionId", std::to_string(machine_type_ + OPERATION_GET_BASE)}};
-  server_->handle_instruction(
-      c, std::bind(&Machine::publish_instruction_base_operation, this,
-                   std::placeholders::_1));
-  // Instruction Cap Operations
-  c = {{"ActionId", std::to_string(machine_type_ + OPERATION_CAP_ACTION)}};
-  server_->handle_instruction(
-      c, std::bind(&Machine::publish_instruction_cap_operation, this,
-                   std::placeholders::_1));
-  // Instruction Ring Operations
-  c = {{"ActionId", std::to_string(machine_type_ + OPERATION_MOUNT_RING)}};
-  server_->handle_instruction(
-      c, std::bind(&Machine::publish_instruction_ring_operation, this,
-                   std::placeholders::_1));
-  // Instruction Deliver Operations
-  c = {{"ActionId", std::to_string(machine_type_ | OPERATION_DELIVER)}};
-  server_->handle_instruction(
-      c, std::bind(&Machine::publish_instruction_deliver_operation, this,
-                   std::placeholders::_1));
+  if (machine_type_ == STATION_BASE) {
+    c = {{"ActionId", std::to_string(machine_type_ + OPERATION_GET_BASE)}};
+    server_->handle_instruction(
+        c, std::bind(&Machine::publish_instruction_base_operation, this,
+                     std::placeholders::_1));
+  }
 
-  // Publishers for Opc Instructions as gaszim_msgs
-  publisher_ = transport_node_->Advertise<gazsim_msgs::OpcInstruction>(
-      "~/opcua/instructions");
+  if (machine_type_ == STATION_CAP) {
+    // Instruction Cap Operations
+    c = {{"ActionId", std::to_string(machine_type_ + OPERATION_CAP_ACTION)}};
+    server_->handle_instruction(
+        c, std::bind(&Machine::publish_instruction_cap_operation, this,
+                     std::placeholders::_1));
+  }
+
+  if (machine_type_ == STATION_RING) {
+    // Instruction Ring Operations
+    c = {{"ActionId", std::to_string(machine_type_ + OPERATION_MOUNT_RING)}};
+    server_->handle_instruction(
+        c, std::bind(&Machine::publish_instruction_ring_operation, this,
+                     std::placeholders::_1));
+  }
+
+  if (machine_type_ == STATION_DELIVERY) {
+    // Instruction Deliver Operations
+    c = {{"ActionId", std::to_string(machine_type_ | OPERATION_DELIVER)}};
+    server_->handle_instruction(
+        c, std::bind(&Machine::publish_instruction_deliver_operation, this,
+                     std::placeholders::_1));
+  }
 };
+
+void Machine::on_set_register(ConstOpcSetRegisterPtr &msg) {
+  if (machine_name_ != msg->mps())
+    return;
+
+  printf("OPC MsgInterface: [%s] : SetRegister Recived [%i,%s] \n",
+         machine_name_.c_str(), msg->reg(), msg->value().c_str());
+
+  server_->set_register_value(msg->reg(), msg->value());
+}
 
 void Machine::publish_instruction_heartbeat(Instruction instruction) {
   std::cout << "[" << machine_name_ << "] :"
@@ -144,7 +167,7 @@ void Machine::publish_instruction_move_conveyor(Instruction instruction) {
   MPSSensor sensor = static_cast<MPSSensor>(std::stoi(instruction["Payload1"]));
   ConveyorDirection direction =
       static_cast<ConveyorDirection>(std::stoi(instruction["Payload2"]));
-  std::cout << "[" << machine_name_ << "] : "
+  std::cout << "OPC MsgInterface: [" << machine_name_ << "] : "
             << " Move Conveyor " << sensor << " " << direction << std::endl;
   OpcInstMoveConveyor *inst_msg = new OpcInstMoveConveyor();
   inst_msg->set_sensor(sensor);
@@ -162,7 +185,7 @@ void Machine::publish_instruction_set_light(Instruction instruction) {
       static_cast<LightColor>(std::stoi(instruction["ActionId"]));
   LightState l_state =
       static_cast<LightState>(std::stoi(instruction["Payload1"]));
-  std::cout << "[" << machine_name_ << "]"
+  std::cout << "OPC MsgInterface: [" << machine_name_ << "]"
             << "SetLight " << l_color << " " << l_state << std::endl;
   OpcInstSetLight *inst_msg = new OpcInstSetLight();
   inst_msg->set_color(l_color);
@@ -178,7 +201,7 @@ void Machine::publish_instruction_set_light(Instruction instruction) {
 void Machine::publish_instruction_base_operation(
     mps_comm::Instruction instruction) {
   BaseColor cl = static_cast<BaseColor>(std::stoi(instruction["Payload1"]));
-  std::cout << "[" << machine_name_ << "] : "
+  std::cout << " OPC MsgInterface: [" << machine_name_ << "] : "
             << "Recived Get Base " << cl << std::endl;
 
   OpcInstBaseOperation *inst_msg = new OpcInstBaseOperation();
@@ -194,7 +217,7 @@ void Machine::publish_instruction_base_operation(
 void Machine::publish_instruction_cap_operation(
     mps_comm::Instruction instruction) {
   Operation p1 = static_cast<Operation>(std::stoi(instruction["Payload1"]));
-  std::cout << "[" << machine_name_ << "] : "
+  std::cout << "OPC MsgInterface: [" << machine_name_ << "] : "
             << "Recived Cap Action " << p1 << std::endl;
 
   OpcInstCapOperation *inst_msg = new OpcInstCapOperation();
@@ -211,7 +234,7 @@ void Machine::publish_instruction_ring_operation(
     mps_comm::Instruction instruction) {
   unsigned int feeder =
       static_cast<unsigned int>(std::stoi(instruction["Payload1"]));
-  std::cout << "[" << machine_name_ << "] : "
+  std::cout << "OPC MsgInterface: [" << machine_name_ << "] : "
             << "Recived Mount Ring (feeder: " << feeder << ")" << std::endl;
 
   OpcInstRingOperation *inst_msg = new OpcInstRingOperation();
@@ -227,7 +250,7 @@ void Machine::publish_instruction_ring_operation(
 void Machine::publish_instruction_deliver_operation(
     mps_comm::Instruction instruction) {
   int slot = static_cast<unsigned int>(std::stoi(instruction["Payload1"]));
-  std::cout << "[" << machine_name_ << "] : "
+  std::cout << "OPC MsgInterface: [" << machine_name_ << "] : "
             << "Recived Deliver (slot: " << slot << ")" << std::endl;
 
   OpcInstDeliverOperation *inst_msg = new OpcInstDeliverOperation();
@@ -239,7 +262,3 @@ void Machine::publish_instruction_deliver_operation(
   msg.set_allocated_deliver_operation(inst_msg);
   publisher_->Publish(msg);
 }
-
-void Machine::on_status_busy(bool busy) {}
-void Machine::on_status_ready(bool ready) {}
-void Machine::on_barcode(uint16_t barcode) {}
