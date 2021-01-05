@@ -28,9 +28,10 @@ OBJS_gazebo_libmps_opcua = mps_opcua.o machine.o
 
 OBJS_all    = $(OBJS_gazebo_libmps_opcua )
 
-ifeq ($(HAVE_GAZEBO)$(HAVE_PROTOBUF)$(HAVE_CPP11),111)
-  CFLAGS  += $(CFLAGS_GAZEBO) $(CFLAGS_PROTOBUF) $(CFLAGS_CPP11)
-  LDFLAGS += $(LDFLAGS_GAZEBO) $(LDFLAGS_PROTOBUF) -lm $(call boost-libs-ldflags,system) -lboost_system
+ifeq ($(HAVE_GAZEBO)$(HAVE_PROTOBUF)$(HAVE_CPP11)$(HAVE_FREEOPCUA),1111)
+  CFLAGS  += $(CFLAGS_GAZEBO) $(CFLAGS_PROTOBUF) $(CFLAGS_CPP11) $(CFLAGS_FREEOPCUA)
+  LDFLAGS += $(LDFLAGS_GAZEBO) $(LDFLAGS_PROTOBUF) $(LDFLAGS_FREEOPCUA)
+  LDFLAGS += -lm $(call boost-libs-ldflags,system) -lboost_system
 
   LIBS_all = $(LIBDIR)/gazebo/libmps_opcua.so
 else
@@ -43,14 +44,9 @@ else
   ifneq ($(HAVE_CPP11),1)
     WARN_TARGETS += warning_cpp11
   endif
-endif
-
-ifeq ($(HAVE_FREEOPCUA),1)
-  OBJS_libmps_comm += $(OBJS_opcua)
-  CFLAGS  += $(CFLAGS_FREEOPCUA) -DHAVE_FREEOPCUA
-  LDFLAGS += $(LDFLAGS_FREEOPCUA)
-else
-  WARN_TARGETS += warning_freeopcua
+  ifneq ($(HAVE_FREEOPCUA),1)
+    WARN_TARGETS += warning_freeopcua
+  endif
 endif
 
 ifeq ($(OBJSSUBMAKE),1)
