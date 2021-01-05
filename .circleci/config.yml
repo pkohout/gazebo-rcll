@@ -10,6 +10,7 @@ jobs:
           command: |
             dnf install -y --nodocs \
               boost-devel \
+              freeopcua-devel \
               gazebo-devel \
               gcc-c++ \
               git \
